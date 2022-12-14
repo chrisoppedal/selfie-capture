@@ -42,8 +42,18 @@ const SelfieCapture = () => {
     }
   }
 
-  const faceDetection = async () => {
-    // https://www.npmjs.com/package/face-api.js
+  // function called on init
+  useEffect(() => {
+    console.log('useEffect!!!!!!!!!!!!!');
+    startVideo();
+    // eslint-disable-next-line no-unused-expressions
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
+      faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+      faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
+      faceapi.nets.faceExpressionNet.loadFromUri('./models'),
+    ]).then(() => {
+      // https://www.npmjs.com/package/face-api.js
     // await faceapi.detectSingleFace(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender().withFaceDescriptor()
     // /Users/christopheroppedal/Repos/verify-webapp/ui-bundle/public/mitekSDK/images/ghost_selfie.gif
     setInterval(async () => {
@@ -81,20 +91,6 @@ const SelfieCapture = () => {
         setIsAboveThreshold(false);
       }
     }, 500);
-  };
-
-  // function called on init
-  useEffect(() => {
-    console.log('useEffect!!!!!!!!!!!!!');
-    startVideo();
-    // eslint-disable-next-line no-unused-expressions
-    Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
-      faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
-      faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
-      faceapi.nets.faceExpressionNet.loadFromUri('./models'),
-    ]).then(() => {
-      faceDetection();
 
       document.getElementById('selfie-video').addEventListener('loadeddata', () => {
         setTimeout(() => {

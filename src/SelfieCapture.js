@@ -82,8 +82,12 @@ const SelfieCapture = () => {
       }
     }, 500);
   };
-  const loadModels = () => {
-    console.log('loadModels()');
+
+  // function called on init
+  useEffect(() => {
+    console.log('useEffect!!!!!!!!!!!!!');
+    startVideo();
+    // eslint-disable-next-line no-unused-expressions
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
       faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
@@ -98,14 +102,6 @@ const SelfieCapture = () => {
         }, 150);
       });
     });
-  };
-
-  // function called on init
-  useEffect(() => {
-    console.log('useEffect!!!!!!!!!!!!!');
-    startVideo();
-    // eslint-disable-next-line no-unused-expressions
-    videoRef && loadModels();
   }, []);
 
   return (

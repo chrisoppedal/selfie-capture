@@ -1,70 +1,35 @@
-# Getting Started with Create React App
+Face API JS: https://justadudewhohacks.github.io/face-api.js/docs/index.html
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### `environment setup`
+1) install node and npm:
 
-In the project directory, you can run:
+https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
+ -- created with node 14.0.0 and npm 6.14.4
 
-### `npm start`
+2) `npm install`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+3) `npm start` to run app in development mode
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+4) Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### `npm test`
+### Deploy production build
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1) Pushing to master will automatically deploy to: selfie-capture.netlify.app
+- Pushing to the 'test' branch will automatically deploy to: selfie-capture-test.netlify.app/
 
-### `npm run build`
+2) Optionally run `npm run build` and manually deploy the output of the `build` directory
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Notes
+- Put assets in the /public directory (https://create-react-app.dev/docs/using-the-public-folder/)
+- Changes go in SelfieCapture.js and SelfieCapture.css
+- VS Code (https://code.visualstudio.com/download) is the recommended IDE for React development although any IDE should work
+- To debug javascript right click page and select 'Inspect'. Inside the 'console' tab you'll see error and javascript logs (console.log('test log', objectToLog);)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Goals
+- Fix Mitek failure errors (face angle too large/ face too close to edge)
+- Improve UX
+- Prevent captures when eyes are closed
+- Prevent capturing selfies too soon (before looking at camera)
+- Improve hints

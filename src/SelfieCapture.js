@@ -103,43 +103,6 @@ const SelfieCapture = () => {
 
   return (
     <>
-      <style>
-        {`
-          .selfie-capture {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-          .selfie-capture-container {
-            display: flex;
-            width: 100vw;
-            height: 100%;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transform: scale(-1, 1);
-          }
-          .selfie_canvas {
-            position: absolute;
-            height: 100%;
-            width: 100%;
-          }
-          #selfie-video {
-            height: 100%;
-            width: 100%;
-            object-fit: cover;
-          }
-          img.selfie-oval {
-            height: 60vh !important;
-            position: absolute;
-            object-fit: contain;
-          }
-      `}
-      </style>
       {!loaded && (
         <Loading />
       )}

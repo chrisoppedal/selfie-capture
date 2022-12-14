@@ -14,7 +14,6 @@ const SelfieCapture = () => {
   const [image, setImage] = useState('');
 
   const startVideo = () => {
-    console.log('startVideo()');
     navigator.mediaDevices?.getUserMedia({ video: true })
       .then((currentStream) => {
         videoRef.current.srcObject = currentStream;
@@ -24,7 +23,6 @@ const SelfieCapture = () => {
   };
 
   async function extractFaceFromBox(imageRef, box) {
-    console.log('extractFaceFromBox', box);
     const regionsToExtract = [
       new faceapi.Rect(box.x, box.y, box.width, box.height),
     ];
@@ -37,12 +35,12 @@ const SelfieCapture = () => {
     } else {
       faceImages.forEach((cnv) => {
         setImage(cnv.toDataURL());
+        console.log('image', cnv.toDataURL());
       });
-      console.log('image', image);
     }
   }
 
-  const faceDetection = async () => {
+  const detectFaces = async () => {
     // https://www.npmjs.com/package/face-api.js
     // await faceapi.detectSingleFace(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender().withFaceDescriptor()
     // /Users/christopheroppedal/Repos/verify-webapp/ui-bundle/public/mitekSDK/images/ghost_selfie.gif
@@ -59,7 +57,7 @@ const SelfieCapture = () => {
         height: vh,
       });
       if (detections) {
-        console.log('faceDetection detection score', detections?._score);
+        console.log('detectFaces detection score', detections?._score);
         setIsAboveThreshold(detections?._score > 0.80);
         const resized = faceapi.resizeResults(detections, {
           width: vw,
@@ -83,15 +81,13 @@ const SelfieCapture = () => {
     }, 500);
   };
   const loadModels = () => {
-    console.log('loadModels()');
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
-      faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
-      faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
-      faceapi.nets.faceExpressionNet.loadFromUri('./models'),
-    ]).then(() => {
-      faceDetection();
-
+      // faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+      // faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
+      // faceapi.nets.faceExpressionNet.loadFromUri('./models'),
+    ]).then((promise) => {
+      detectFaces();
       document.getElementById('selfie-video').addEventListener('loadeddata', () => {
         setTimeout(() => {
           setisLoaded(true);
@@ -102,7 +98,6 @@ const SelfieCapture = () => {
 
   // function called on init
   useEffect(() => {
-    console.log('useEffect!!!!!!!!!!!!!');
     startVideo();
     // eslint-disable-next-line no-unused-expressions
     videoRef && loadModels();

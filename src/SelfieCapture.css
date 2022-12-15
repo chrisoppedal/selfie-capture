@@ -1,12 +1,3 @@
-    .selfie-capture {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
     .selfie-capture-container {
       display: flex;
       width: 100vw;
@@ -14,7 +5,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transform: scale(-1, 1);
+      background: #D3D3D3;
+      overflow: auto;
+    }
+    .selfie-img {
+      height: 200px;
     }
     .selfie_canvas {
       position: absolute;
@@ -22,12 +17,32 @@
       width: 100%;
     }
     #selfie-video {
-      height: 100%;
-      width: 100%;
       object-fit: cover;
+      transform: scale(-1, 1);
     }
     img.selfie-oval {
-      height: 80vh !important;
       position: absolute;
       object-fit: contain;
     }
+    div#hint-message {
+      position:absolute;
+      background-color:rgba(60,60,60,.8);
+      color:#fff;
+      font-size:20px!important;
+      width:100%!important;
+      bottom:5%;
+      font-weight: bold;
+      padding: 15px;
+      opacity: 0.8;
+      text-align: center;
+  }
+
+  .themed-button {
+    border-radius: 7px!important;
+    min-height: 50px!important;
+  }
+
+  .side-padding {
+    padding-left: 10vw;
+    padding-right: 10vw;
+  }

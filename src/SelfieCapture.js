@@ -5,7 +5,7 @@ import { isMobile } from 'react-device-detect';
 import useInterval from './useInterval';
 import { Button, Box, Text } from '@pingux/astro';
 import Loading from './Loading';
-import { Box, Point } from 'face-api.js';
+import { Point } from 'face-api.js';
 
 const SelfieCapture = () => {
   // useRef gets reference to items in DOM
@@ -31,41 +31,72 @@ const SelfieCapture = () => {
 
   useInterval(() => {
     detectFaces();
-  }, 1000);
+  }, 500);
+
+  function drawFaceWithLandmark(detectionWithLandmark) {
+  
+    const resizedDetection = resizeDetection(detectionWithLandmark.detection);
+    const resizedWithLandmark = resizeDetection(detectionWithLandmark);
+  
+    faceapi.draw.drawDetections(canvasRef.current, resizedDetection); // draw box onto the detected face
+    faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedWithLandmark);
+  }
+  
+  function resizeDetection(detection) {
+    const vw = document.getElementById('selfie-video').offsetWidth;
+    const vh = document.getElementById('selfie-video').offsetHeight;
+    const resized = faceapi.resizeResults(detection, {
+      width: vw, height: vh
+    });
+    return resized;
+  }
 
   const detectFaces = async () => {
       if (!image) {
         // detectSingleFace(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender().withFaceDescriptor()
         // TinyFaceOptions: inputSize - size at which image is processed, the smaller the faster but less precise in detecting smaller faces, for face tracking via webcam I would recommend using smaller sizes
         // scoreThreshold - minimum confidence threshold, default 0.5
-        const detectionWithLandmark = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: threshold })).withFaceLandmarks();
-      // console.log('detectionWithLandmark', detectionWithLandmark);
+        const allFacesWithlandmark = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+        // console.log('allFacesWithlandmark', allFacesWithlandmark);
+        // console.log('Number of faces', allFacesWithlandmark.length);
+
+        const errorConsumer = (error) => {
+          console.log('error: ' + error);
+          setHint(error);
+        };
+        
+        // canvasRef.current.innerHtml = faceapi.createCanvasFromMedia(videoRef.current);
+        const vw = document.getElementById('selfie-video').offsetWidth;
+        const vh = document.getElementById('selfie-video').offsetHeight;
+
+        faceapi.matchDimensions(canvasRef.current, {
+          width: vw,
+          height: vh,
+        });
+
+        allFacesWithlandmark.forEach(face => drawFaceWithLandmark(face));
+        
+        if(allFacesWithlandmark.length === 0) {
+          errorConsumer('FACE_NOT_FOUND');
+          return;
+        }
+        if(allFacesWithlandmark.length > 1) {
+          console.log('Found multiple faces', allFacesWithlandmark.length);
+          errorConsumer("MULTIPLE_FACES");
+          return;
+        }
+
+        const detectionWithLandmark = allFacesWithlandmark[0];
+        // const detectionWithLandmark = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
         const face = detectionWithLandmark?.detection;
 
-        // faceapi.matchDimensions(videoRef.current, {
-        //   width: document.getElementById('selfie-video').offsetWidth,
-        //   height: document.getElementById('selfie-video').offsetHeight,
-        // });
         if (face) {
           setHint(face?._score);
           setIsAboveThreshold(face?._score > threshold);
-          const resized = faceapi.resizeResults(face, {
-            width: window.innerWidth, height: window.innerHeight
-          });
-
-          const resizedWithLandmark = faceapi.resizeResults(detectionWithLandmark, {
-            width: vw,
-            height: vh,
-          });
-  
-          faceapi.draw.drawDetections(canvasRef.current, resized); // draw box onto the detected face
-          faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedWithLandmark);
           
-          const errorConsumer = (error) => console.log('error: ' + error);
-          verifyDetection(detection, errorConsumer);
-          verifyLandmarks(detectionWithLandmark.landmarks, detection.box, errorConsumer);
+          const qualityGood = checkDetectionQuality(detectionWithLandmark, errorConsumer);
 
-          if (face?._score > threshold) {
+          if (face?._score > threshold && qualityGood) {
             const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -73,6 +104,8 @@ const SelfieCapture = () => {
             ctx.drawImage(document.getElementById('selfie-video'), 0, 0, canvas.width, canvas.height);
             const faceImage = document.createElement('img');
             faceImage.src = canvas.toDataURL();
+
+            const resized = resizeDetection(face);
             const regionsToExtract = [
               new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width, resized?.box._height),
             ];
@@ -89,6 +122,7 @@ const SelfieCapture = () => {
           setIsAboveThreshold(false);
         }
       }
+
   };
   const loadModels = () => {
     Promise.all([
@@ -207,6 +241,15 @@ const SelfieCapture = () => {
 };
 
 export default SelfieCapture;
+
+
+function checkDetectionQuality(detectionWithLandmark, errorConsumer) {
+  var detectionGood = verifyDetection(detectionWithLandmark.detection, errorConsumer);
+  var landmarksGood = verifyLandmarks(detectionWithLandmark.landmarks, detectionWithLandmark.detection.box, errorConsumer);
+
+  return detectionGood && landmarksGood;
+}
+
 function verifyDetection(detection, errorCodeConsumer) {
   if(!checkDetectionCentered(detection, errorCodeConsumer)) {
     return false;
@@ -220,7 +263,6 @@ function verifyDetection(detection, errorCodeConsumer) {
 }
 
 function checkDetectionLargeEnough(detection, errorCodeConsumer) {
-  const totalWidth = detection.imageWidth;
   const totalHeight = detection.imageHeight;
 
   const detectionHeightPercent = (detection.box.height / totalHeight);
@@ -302,9 +344,9 @@ function checkFaceTilt(landmarks, errorCodeConsumer) {
   return true;
 }
 
-function boxContainsBox(largerBox, smallerBox) {
-  return largerBox.left <= smallerBox.left && largerBox.right <= smallerBox.right && largerBox.top <= smallerBox.top && largerBox.bottom >= smallerBox.bottom;
-}
+// function boxContainsBox(largerBox, smallerBox) {
+//   return largerBox.left <= smallerBox.left && largerBox.right <= smallerBox.right && largerBox.top <= smallerBox.top && largerBox.bottom >= smallerBox.bottom;
+// }
 
 function boxContainsPoints(box, points) {
   return points.every((point) => boxContainsPoint(box, point));

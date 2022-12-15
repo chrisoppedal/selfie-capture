@@ -19,7 +19,8 @@ const SelfieCapture = () => {
   const [hint, setHint] = useState('');
 
   const threshold = 0.9;
-
+  const captureFace = true; // turn off during development of the quality checks
+ 
   const startVideo = () => {
     navigator.mediaDevices?.getUserMedia({ video: true })
       .then((currentStream) => {
@@ -60,7 +61,7 @@ const SelfieCapture = () => {
         // console.log('allFacesWithlandmark', allFacesWithlandmark);
         // console.log('Number of faces', allFacesWithlandmark.length);
 
-        const errorConsumer = (error) => {
+        const errorCodeConsumer = (error) => {
           console.log('error: ' + error);
           setHint(error);
         };
@@ -77,12 +78,12 @@ const SelfieCapture = () => {
         allFacesWithlandmark.forEach(face => drawFaceWithLandmark(face));
         
         if(allFacesWithlandmark.length === 0) {
-          errorConsumer('FACE_NOT_FOUND');
+          errorCodeConsumer('FACE_NOT_FOUND');
           return;
         }
         if(allFacesWithlandmark.length > 1) {
           console.log('Found multiple faces', allFacesWithlandmark.length);
-          errorConsumer("MULTIPLE_FACES");
+          errorCodeConsumer("MULTIPLE_FACES");
           return;
         }
 
@@ -94,9 +95,9 @@ const SelfieCapture = () => {
           setHint(face?._score);
           setIsAboveThreshold(face?._score > threshold);
           
-          const qualityGood = checkDetectionQuality(detectionWithLandmark, errorConsumer);
+          const qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
 
-          if (face?._score > threshold && qualityGood) {
+          if (captureFace && face?._score > threshold && qualityGood) {
             const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -242,20 +243,16 @@ const SelfieCapture = () => {
 
 export default SelfieCapture;
 
-
-function checkDetectionQuality(detectionWithLandmark, errorConsumer) {
-  var detectionGood = verifyDetection(detectionWithLandmark, errorConsumer);
-  var landmarksGood = verifyLandmarks(detectionWithLandmark.landmarks, detectionWithLandmark.detection.box, errorConsumer);
-
-  return detectionGood && landmarksGood;
-}
-
-function verifyDetection(detectionWithLandmark, errorCodeConsumer) {
-  if(!checkDetectionCentered(detectionWithLandmark, errorCodeConsumer)) {
+function checkDetectionQuality(detectionWithLandmark, errorCodeConsumer) {
+  if(!checkDetectionSize(detectionWithLandmark, errorCodeConsumer)) {
     return false;
   }
 
-  if(!checkDetectionSize(detectionWithLandmark, errorCodeConsumer)) {
+  if(!verifyLandmarks(detectionWithLandmark, errorCodeConsumer)) {
+    return false;
+  }
+
+  if(!checkDetectionCentered(detectionWithLandmark, errorCodeConsumer)) {
     return false;
   }
 
@@ -279,10 +276,7 @@ function checkDetectionSize(detectionWithLandmark, errorCodeConsumer) {
   const detectionHeight = 2 * heightEyeToChin;
   const detectionHeightPercent = (detectionHeight / totalHeight);
 
-  // console.log("detectionHeightPercent", detectionHeightPercent);
-
-  // Need to adjust this. The detection box does not include most of my forhead so my head is much larger in the image than the detection box
-  if(detectionHeightPercent < 0.7) {
+  if(detectionHeightPercent < 0.6) {
     errorCodeConsumer("TOO_SMALL");
     console.log("detectionHeightPercent", detectionHeightPercent);
     return false;
@@ -304,8 +298,6 @@ function checkDetectionCentered(detectionWithLandmark, errorCodeConsumer) {
   const horizontalCenterOffset = Math.abs(imageHorizontalCenter - detectionHorizontalCenter);
   const horizontalCenterOffsetPercentage = (horizontalCenterOffset / totalWidth);
 
-
-  console.log("horizontalCenterOffsetPercentage", horizontalCenterOffsetPercentage);
   if(horizontalCenterOffsetPercentage > 0.05) {
     errorCodeConsumer("NOT_CENTERED_HORIZONTAL");
     console.log("horizontalCenterOffsetPercentage", horizontalCenterOffsetPercentage);
@@ -331,7 +323,95 @@ function checkDetectionCentered(detectionWithLandmark, errorCodeConsumer) {
   return true;
 }
 
-function verifyLandmarks(landmarks, box, errorCodeConsumer) {
+function verifyLandmarks(detectionWithLandmark, errorCodeConsumer) {
+
+  if(!checkBoxContainsLandmarks(detectionWithLandmark, errorCodeConsumer)) {
+    return false;
+  }
+
+  if(!checkUserFacingWebcam(detectionWithLandmark, errorCodeConsumer)) {
+    return false;
+  }
+
+  if(!checkEyeTilt(detectionWithLandmark, errorCodeConsumer)) {
+    return false;
+  }
+
+  if(!checkMouthClosed(detectionWithLandmark, errorCodeConsumer)) {
+    return false;
+  }
+
+  return true;
+}
+
+function checkUserFacingWebcam(detectionWithLandmark, errorCodeConsumer) {
+  const landmarks = detectionWithLandmark.landmarks;
+  const box = detectionWithLandmark.detection.box;
+
+  // copied from https://github.com/justadudewhohacks/face-api.js/issues/724
+  var rightEye = getMeanPosition(landmarks.getRightEye());
+  var leftEye = getMeanPosition(landmarks.getLeftEye());
+  var nose = getMeanPosition(landmarks.getNose());
+  var mouth = getMeanPosition(landmarks.getMouth());
+  var jaw = getTop(landmarks.getJawOutline());
+
+  var rx = Math.abs((jaw - mouth[1]) / box.height);
+  var ry = (leftEye[0] + (rightEye[0] - leftEye[0]) / 2 - nose[0]) / box.height;
+
+  var horizontalValue = ry.toFixed(2);
+
+  if(horizontalValue < -0.06)
+  {
+    //user moving in left direction
+    console.log("user looking LEFT (horizontalValue < -0.06)", horizontalValue);
+    errorCodeConsumer("LOOKING_LEFT");
+    return false;
+  }
+  else if(horizontalValue >= 0.07)
+  {
+    //user moving in right direction	
+    console.log("user looking RIGHT (horizontalValue >= 0.07)", horizontalValue);
+    errorCodeConsumer("LOOKING_RIGHT");
+    return false;
+  }
+
+  var verticalValue = rx.toFixed(2);
+  if(verticalValue < 0.35) {
+    console.log("user looking UP (verticalValue < 0.4)", verticalValue);
+    errorCodeConsumer("LOOKING_UP");
+    return false;
+  } else if (verticalValue > 0.55) {
+    console.log("user looking DOWN (verticalValue > 0.55)", verticalValue);
+    errorCodeConsumer("LOOKING_DOWN");
+    return false;
+  }
+
+  return true;
+}
+
+function checkMouthClosed(detectionWithLandmark, errorCodeConsumer) {
+  const landmarks = detectionWithLandmark.landmarks;
+  const box = detectionWithLandmark.detection.box;
+
+  // see for placement of points: https://www.researchgate.net/figure/dlib-24-facial-landmarks-68-keypoints_fig3_342261596
+  const bottomOfTopLip = landmarks.positions[63];
+  const topOfBottomLip = landmarks.positions[67];
+
+  const lipOpeningHeight = Math.abs(topOfBottomLip.y - bottomOfTopLip.y);
+  const lipOpeningHeightPercent = lipOpeningHeight / box.height;
+
+  if(lipOpeningHeightPercent > 0.1) {
+    errorCodeConsumer("MOUTH_OPEN");
+    console.log("lipOpeningHeightPercent", lipOpeningHeightPercent);
+    return false;
+  }
+
+  return true;
+}
+
+function checkBoxContainsLandmarks(detectionWithLandmark, errorCodeConsumer) {
+  const landmarks = detectionWithLandmark.landmarks;
+  const box = detectionWithLandmark.detection.box;
 
   const containsLeftEye = boxContainsPoints(box, landmarks.getLeftEye());
   const containsRightEye = boxContainsPoints(box, landmarks.getRightEye());
@@ -339,19 +419,16 @@ function verifyLandmarks(landmarks, box, errorCodeConsumer) {
   const containsMouth = boxContainsPoints(box, landmarks.getMouth());
 
   const containsAll = containsLeftEye && containsRightEye && containsNose && containsMouth;
+
   if(!containsAll) {
     errorCodeConsumer('LANDMARK_OUTSIDE_DETECTION');
-    return false;
   }
 
-  if(!checkEyeTilt(landmarks, errorCodeConsumer)) {
-    return false;
-  }
-
-  return true;
+  return containsAll;
 }
 
-function checkEyeTilt(landmarks, errorCodeConsumer) {
+function checkEyeTilt(detectionWithLandmark, errorCodeConsumer) {
+  const landmarks = detectionWithLandmark.landmarks;
   
   const leftEyeCenter = calculateCenterPoint(landmarks.getLeftEye());
   const rightEyeCenter = calculateCenterPoint(landmarks.getRightEye());
@@ -396,4 +473,14 @@ function calculateCenterPoint(points) {
 
 function boxContainsPoint(box, point) {
   return box.left <= point.x && point.x <= box.right && box.top <= point.y && point.y <= box.bottom;
+}
+
+function getTop(l)
+{
+  return l.map((a) => a.y).reduce((a, b) => Math.min(a, b));
+}
+
+function getMeanPosition(l)
+{
+  return l.map((a) => [a.x, a.y]).reduce((a, b) => [a[0] + b[0], a[1] + b[1]]).map((a) => a / l.length);
 }

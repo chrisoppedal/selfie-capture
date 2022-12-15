@@ -28,6 +28,9 @@ const SelfieCapture = () => {
       }).catch((err) => {
         console.error(err);
       });
+      document.getElementById('selfie-video')?.addEventListener('loadeddata', () => {
+        setLoading(false);
+      });
   };
 
   useInterval(() => {
@@ -53,7 +56,7 @@ const SelfieCapture = () => {
   }
 
   const detectFaces = async () => {
-      if (!image) {
+      if (document.getElementById('selfie-video') && !image) {
         // detectSingleFace(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender().withFaceDescriptor()
         // TinyFaceOptions: inputSize - size at which image is processed, the smaller the faster but less precise in detecting smaller faces, for face tracking via webcam I would recommend using smaller sizes
         // scoreThreshold - minimum confidence threshold, default 0.5
@@ -63,7 +66,7 @@ const SelfieCapture = () => {
 
         const errorCodeConsumer = (error) => {
           console.log('error: ' + error);
-          setHint(error);
+          setHint(error.replaceAll('_', ' '));
         };
         
         // canvasRef.current.innerHtml = faceapi.createCanvasFromMedia(videoRef.current);
@@ -92,7 +95,6 @@ const SelfieCapture = () => {
         const face = detectionWithLandmark?.detection;
 
         if (face) {
-          setHint(face?._score);
           setIsAboveThreshold(face?._score > threshold);
           
           const qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
@@ -135,11 +137,7 @@ const SelfieCapture = () => {
       // faceapi.nets.faceExpressionNet.loadFromUri('./models'), // detect facial expressions
       // faceapi.nets.ageGenderNet.loadFromUri('./models')
     ]).then((promise) => {
-      document.getElementById('selfie-video').addEventListener('loadeddata', () => {
-        setTimeout(() => {
-          setLoading(false);
-        }, 300);
-      });
+      console.log('Models loaded!');
     });
   };
 

@@ -244,40 +244,59 @@ export default SelfieCapture;
 
 
 function checkDetectionQuality(detectionWithLandmark, errorConsumer) {
-  var detectionGood = verifyDetection(detectionWithLandmark.detection, errorConsumer);
+  var detectionGood = verifyDetection(detectionWithLandmark, errorConsumer);
   var landmarksGood = verifyLandmarks(detectionWithLandmark.landmarks, detectionWithLandmark.detection.box, errorConsumer);
 
   return detectionGood && landmarksGood;
 }
 
-function verifyDetection(detection, errorCodeConsumer) {
-  if(!checkDetectionCentered(detection, errorCodeConsumer)) {
+function verifyDetection(detectionWithLandmark, errorCodeConsumer) {
+  if(!checkDetectionCentered(detectionWithLandmark, errorCodeConsumer)) {
     return false;
   }
 
-  if(!checkDetectionLargeEnough(detection, errorCodeConsumer)) {
+  if(!checkDetectionSize(detectionWithLandmark, errorCodeConsumer)) {
     return false;
   }
 
   return true;
 }
 
-function checkDetectionLargeEnough(detection, errorCodeConsumer) {
+function checkDetectionSize(detectionWithLandmark, errorCodeConsumer) {
+  const detection = detectionWithLandmark.detection;
+
+  const landmarks = detectionWithLandmark.landmarks;
+  const jawOutlinePoints = landmarks.getJawOutline();
+  const jawOutlineYs = jawOutlinePoints.map(point => point.y);
+  const maxY = Math.max(...jawOutlineYs);
+
+  const allEyePoints = landmarks.getLeftEye().concat(landmarks.getRightEye());
+  const eyeCenter = calculateCenterPoint(allEyePoints);
+
   const totalHeight = detection.imageHeight;
 
-  const detectionHeightPercent = (detection.box.height / totalHeight);
+  const heightEyeToChin = Math.abs(maxY - eyeCenter.y);
+  const detectionHeight = 2 * heightEyeToChin;
+  const detectionHeightPercent = (detectionHeight / totalHeight);
+
   // console.log("detectionHeightPercent", detectionHeightPercent);
 
   // Need to adjust this. The detection box does not include most of my forhead so my head is much larger in the image than the detection box
-  if(detectionHeightPercent < 0.3) {
+  if(detectionHeightPercent < 0.7) {
     errorCodeConsumer("TOO_SMALL");
+    console.log("detectionHeightPercent", detectionHeightPercent);
+    return false;
+  } else if (detectionHeightPercent > 0.9) {
+    errorCodeConsumer("TOO_LARGE");
+    console.log("detectionHeightPercent", detectionHeightPercent);
     return false;
   }
 
   return true;
 }
 
-function checkDetectionCentered(detection, errorCodeConsumer) {
+function checkDetectionCentered(detectionWithLandmark, errorCodeConsumer) {
+  const detection = detectionWithLandmark.detection;
   const totalWidth = detection.imageWidth;
   const imageHorizontalCenter = totalWidth / 2;
 
@@ -285,20 +304,27 @@ function checkDetectionCentered(detection, errorCodeConsumer) {
   const horizontalCenterOffset = Math.abs(imageHorizontalCenter - detectionHorizontalCenter);
   const horizontalCenterOffsetPercentage = (horizontalCenterOffset / totalWidth);
 
-  const totalHeight = detection.imageHeight;
-  const imageVerticalCenter = totalWidth / 2;
 
-  const detectionVerticalCenter = detection.box.top + (detection.box.height / 2);
-  const verticalCenterOffset = Math.abs(imageVerticalCenter - detectionVerticalCenter);
-  const verticalCenterOffsetPercentage = (verticalCenterOffset / totalHeight);
-
-  if(horizontalCenterOffsetPercentage > 0.2) {
+  console.log("horizontalCenterOffsetPercentage", horizontalCenterOffsetPercentage);
+  if(horizontalCenterOffsetPercentage > 0.05) {
     errorCodeConsumer("NOT_CENTERED_HORIZONTAL");
+    console.log("horizontalCenterOffsetPercentage", horizontalCenterOffsetPercentage);
     return false;
   }
 
-  if(verticalCenterOffsetPercentage > 0.2) {
+  const landmarks = detectionWithLandmark.landmarks;
+  const allEyePoints = landmarks.getLeftEye().concat(landmarks.getRightEye());
+  const eyeCenter = calculateCenterPoint(allEyePoints);
+
+  const totalHeight = detection.imageHeight;
+  const imageVerticalCenter = totalHeight / 2;
+
+  const verticalCenterOffset = Math.abs(imageVerticalCenter - eyeCenter.y);
+  const verticalCenterOffsetPercentage = (verticalCenterOffset / totalHeight);
+
+  if(verticalCenterOffsetPercentage > 0.15) {
     errorCodeConsumer("NOT_CENTERED_VERTICAL");
+    console.log("eye vertical center offset percent", verticalCenterOffsetPercentage);
     return false;
   }
 
@@ -318,14 +344,14 @@ function verifyLandmarks(landmarks, box, errorCodeConsumer) {
     return false;
   }
 
-  if(!checkFaceTilt(landmarks, errorCodeConsumer)) {
+  if(!checkEyeTilt(landmarks, errorCodeConsumer)) {
     return false;
   }
 
   return true;
 }
 
-function checkFaceTilt(landmarks, errorCodeConsumer) {
+function checkEyeTilt(landmarks, errorCodeConsumer) {
   
   const leftEyeCenter = calculateCenterPoint(landmarks.getLeftEye());
   const rightEyeCenter = calculateCenterPoint(landmarks.getRightEye());
@@ -338,6 +364,7 @@ function checkFaceTilt(landmarks, errorCodeConsumer) {
 
   if(angleDegAbs > 10) {
     errorCodeConsumer('HEAD_TILTED');
+    console.log("angleDegAbs", angleDegAbs);
     return false;
   }
 

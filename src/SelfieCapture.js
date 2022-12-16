@@ -161,7 +161,7 @@ const SelfieCapture = () => {
                 // console.log("imageDataUrl", imageDataUrl);
                 
                 setImage(imageDataUrl);
-                toast.success('Your selfie has been captured!', { duration: 2000, position: 'top-right' });
+                toast.success('Your selfie has been captured!', { duration: 3000, position: 'top-right' });
               } else {
                 // don't set image so that it re-captures the face
                 console.log("Image quality changed. score: ", postProcessingScore);
@@ -248,7 +248,7 @@ const SelfieCapture = () => {
         ${!isMobile ? 'object-fit: cover;' : '' }
       }
       img.selfie-oval {
-        scale: ${isMobile ? '1.8;' : '1;'}
+        scale: ${isMobile ? '2;' : '1;'}
         ${!isMobile ? 'height: 100vh; top: 0; bottom: 0;' : '' }
       }
       .selfie-img {
@@ -287,9 +287,9 @@ const SelfieCapture = () => {
               </svg>
             </Box>
             <img src={image} alt="face" crossOrigin="anonymous" className="selfie-img" />
-            <Box mx="auto" mt="sm" mb="md" sx={{ width: '80%' }}>
+            <Box mx="auto" mt="sm" mb="md" sx={{ width: '30%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>
-              <Button mt="md" className="themed-button" variant="primary">Continue</Button>
+              <Button mt="md" mb="md" className="themed-button" variant="primary">Continue</Button>
               {/* <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button> */}
             </Box>
           </Box> }

@@ -99,55 +99,75 @@ const SelfieCapture = () => {
         const face = detectionWithLandmark?.detection;
 
         if (face) {
+          var extractX = 0;
+          var extractY = 0;
+          var extractWidth = face.imageWidth;
+          var extractHeight = face.imageHeight;
+          if(!isMobile) {
+            extractX = face.box.x / 2;
+            extractWidth = face.box.width + face.box.x;
+          }
+          const regionToExtract = new faceapi.Rect(extractX, extractY, extractWidth, extractHeight);
+          // const regionToExtract = new faceapi.Rect(0, 0, resized?.box._width + resized?.box.x, resized?.box._height + (1.5 * resized?.box.y));
           
-          const qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
+          var extractedFaceCanvas;
+          
+          // console.log('resized', resized);
+          const faceImages = await faceapi.extractFaces(videoRef.current, [regionToExtract]);
+          if (faceImages.length === 0) {
+            console.log('No face found');
+          } else if (faceImages.length > 1) {
+            console.log('Multiple faces found?');
+          } else {
+            extractedFaceCanvas = faceImages[0];
+          }
+
+          const faceBrightness = calculateBrightness(extractedFaceCanvas);
+          console.log('faceBrightness', faceBrightness);
+          if(faceBrightness < 50) {
+            errorCodeConsumer("TOO_DARK");
+            return;
+          }
+
+          var qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
 
           if (captureFace && face?._score > threshold && qualityGood) {
             setHint('Hold still');
             setIsAboveThreshold(face?._score > threshold);
 
-            var extractX = 0;
-            var extractY = 0;
-            var extractWidth = face.imageWidth;
-            var extractHeight = face.imageHeight;
-            if(!isMobile) {
-              extractX = face.box.x / 2;
-              extractWidth = face.box.width + face.box.x;
+            const allFacesWithlandmark = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+      
+            if(allFacesWithlandmark.length === 0) {
+              // errorCodeConsumer('FACE_NOT_FOUND');
+              return;
             }
-            const regionToExtract = new faceapi.Rect(extractX, extractY, extractWidth, extractHeight);
-            // const regionToExtract = new faceapi.Rect(0, 0, resized?.box._width + resized?.box.x, resized?.box._height + (1.5 * resized?.box.y));
-            
-            
-            // console.log('resized', resized);
-            const faceImages = await faceapi.extractFaces(videoRef.current, [regionToExtract]);
-            if (faceImages.length === 0) {
-              console.log('No face found');
-            } else if (faceImages.length > 1) {
-              console.log('Multiple faces found?');
-            } else {
-              const faceImageCanvas = faceImages[0];
-              const imageDataUrl = faceImageCanvas.toDataURL();
+            if(allFacesWithlandmark.length > 1) {
+              console.log('Found multiple faces', allFacesWithlandmark.length);
+              errorCodeConsumer("MULTIPLE_FACES");
+              return;
+            }
 
-              const detectionWithLandmark = await faceapi.detectSingleFace(faceImageCanvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+            const detectionWithLandmark = allFacesWithlandmark[0];
 
-              if(detectionWithLandmark && detectionWithLandmark.detection) {
-                const postProcessingScore = detectionWithLandmark.detection.score;
-                console.log("post-processing score: ", postProcessingScore);
+            if(detectionWithLandmark && detectionWithLandmark.detection) {
+              const postProcessingScore = detectionWithLandmark.detection.score;
+              console.log("post-processing score: ", postProcessingScore);
 
-                // const qualityStillGood = checkDetectionQuality(detectionWithLandmark, (errorCode) => console.error("Post processing error", errorCode));
-                const qualityStillGood = postProcessingScore > threshold;
-                console.log('quality still good:', qualityStillGood)
-                if(qualityStillGood) {
-                  // console.log("imageDataUrl", imageDataUrl);
-                  
-                  setImage(imageDataUrl);
-                  toast.success('Your selfie has been captured!', { duration: 2000, position: 'top-right' });
-                } else {
-                  // don't set image so that it re-captures the face
-                  console.log("Image quality changed. score: ", postProcessingScore);
-                }
+              // const qualityStillGood = checkDetectionQuality(detectionWithLandmark, (errorCode) => console.error("Post processing error", errorCode));
+              const qualityStillGood = postProcessingScore > threshold;
+              console.log('quality still good:', qualityStillGood)
+              if(qualityStillGood) {
+                const imageDataUrl = extractedFaceCanvas.toDataURL();
+                // console.log("imageDataUrl", imageDataUrl);
+                
+                setImage(imageDataUrl);
+                toast.success('Your selfie has been captured!', { duration: 2000, position: 'top-right' });
+              } else {
+                // don't set image so that it re-captures the face
+                console.log("Image quality changed. score: ", postProcessingScore);
               }
             }
+            
           }
         } else {
           setIsAboveThreshold(false);
@@ -280,6 +300,27 @@ const SelfieCapture = () => {
 };
 
 export default SelfieCapture;
+function calculateBrightness(canvas) {
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(canvas,0,0);
+
+  var colorSum = 0;
+  var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  var data = imageData.data;
+  var r,g,b,avg;
+
+  for(var x = 0, len = data.length; x < len; x+=4) {
+      r = data[x];
+      g = data[x+1];
+      b = data[x+2];
+
+      avg = Math.floor((r+g+b)/3);
+      colorSum += avg;
+  }
+
+  var brightness = Math.floor(colorSum / (canvas.width*canvas.height));
+  return brightness;
+}
 
 function checkDetectionQuality(detectionWithLandmark, errorCodeConsumer) {
   if(!checkDetectionSize(detectionWithLandmark, errorCodeConsumer)) {

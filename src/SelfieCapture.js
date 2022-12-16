@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { isMobile } from 'react-device-detect';
 import CameraSelect from './CameraSelect';
+import toast, { Toaster } from 'react-hot-toast';
 import useInterval from './useInterval';
 import { Button, Box } from '@pingux/astro';
 import Loading from './Loading';
@@ -140,6 +141,7 @@ const SelfieCapture = () => {
                   // console.log("imageDataUrl", imageDataUrl);
                   
                   setImage(imageDataUrl);
+                  toast.success('Your selfie has been captured!', { duration: 2000, position: 'top-right' });
                 } else {
                   // don't set image so that it re-captures the face
                   console.log("Image quality changed. score: ", postProcessingScore);
@@ -207,14 +209,15 @@ const SelfieCapture = () => {
 
   return (
     <>
+    <Toaster />
     <style>
       {`
       #selfie-video, .selfie-oval {
-        min-height: ${isMobile ? 'calc(100vh - 56px);' : '100vh;'};
+        min-height: ${isMobile ? 'calc(100vh - 56px);' : '95vh;'};
         width: ${isMobile ? '100%;' : '100vw;'};
       }
       #selfie-video {
-        ${!isMobile ? 'height: 100vh;' : ';' }
+        ${!isMobile ? 'height: 95vh;' : ';' }
       }
       .img-container {
         margin: 10% auto 10% auto;

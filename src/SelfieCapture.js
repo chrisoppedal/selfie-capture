@@ -287,7 +287,7 @@ const SelfieCapture = () => {
               </svg>
             </Box>
             <img src={image} alt="face" crossOrigin="anonymous" className="selfie-img" />
-            <Box mx="auto" mt="sm" mb="md" sx={{ width: '30%' }}>
+            <Box mx="auto" mt="sm" mb="md" sx={{ width: '25%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>
               <Button mt="md" mb="md" className="themed-button" variant="primary">Continue</Button>
               {/* <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button> */}

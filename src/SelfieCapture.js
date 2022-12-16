@@ -107,7 +107,7 @@ const SelfieCapture = () => {
             const resized = resizeDetection(face);
             console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y + 100, resized?.box._width + 300, resized?.box._height + 300),
+              new faceapi.Rect(resized?.box._x, resized?.box._y - 100, resized?.box._width + 300, resized?.box._height + 300),
             ];
             const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
             if (faceImages.length === 0) {
@@ -199,7 +199,7 @@ const SelfieCapture = () => {
       )}
         <Box className="selfie-capture-container" onClick={ () => { setImage('test')}}>
           {!image && <video crossOrigin="anonymous" id="selfie-video" ref={videoRef} playsInline autoPlay muted preload="metadata" /> }
-          {!image && !loading && <div id="hint-message" >{hint}</div> }
+          {!image && !loading && hint && <div id="hint-message" >{hint}</div> }
           {!image && (
           <canvas
             ref={canvasRef}

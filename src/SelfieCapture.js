@@ -207,7 +207,7 @@ const SelfieCapture = () => {
       )}
         <Box className="selfie-capture-container">
         {!isMobile && !image && (
-            <CameraSelect loading={loading} isMitek />
+            <CameraSelect loading={loading} />
           )}
           {!image && <video crossOrigin="anonymous" id="selfie-video" ref={videoRef} playsInline autoPlay muted preload="metadata" /> }
           {!image && !loading && hint && <div id="hint-message" >{hint}</div> }

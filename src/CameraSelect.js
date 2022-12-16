@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+l/* eslint-disable no-restricted-syntax */
 import React, { useEffect } from 'react';
 import { Box } from '@pingux/astro';
 import PropTypes from 'prop-types';
@@ -7,13 +7,12 @@ import './camera-select.css';
 const CameraSelect = (props) => {
   const {
     loading,
-    isMitek,
   } = props;
 
   useEffect(() => {
     if (!loading) {
       const videoSelect = document.getElementById('videoSource');
-      const videoElement = isMitek ? document.getElementsByTagName('video')[document.getElementsByTagName('video').length - 1] : document.querySelector('video');
+      const videoElement = document.getElementsByTagName('video')[document.getElementsByTagName('video').length - 1];
 
       const startSelectedStream = () => {
         if (window.stream) {
@@ -52,12 +51,10 @@ const CameraSelect = (props) => {
           }
         }
       };
-
-      console.log('!!!!!!!!!!!!!!!!!!!!!!!!');
       startSelectedStream()?.then(() => navigator.mediaDevices.enumerateDevices()).then(repopulateDropdown);
     }
-    // eslint-disable-next-line to the line before.
-  }, [loading]);
+    // eslint-disable-next-line
+ear  }, [loading]);
 
   return (
     <Box
@@ -83,7 +80,6 @@ const CameraSelect = (props) => {
 
 CameraSelect.propTypes = {
   loading: PropTypes.bool.isRequired,
-  isMitek: PropTypes.bool.isRequired,
 };
 
 export default CameraSelect;

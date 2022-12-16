@@ -2,6 +2,7 @@ import './SelfieCapture.css';
 import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { isMobile } from 'react-device-detect';
+import CameraSelect from './CameraSelect';
 import useInterval from './useInterval';
 import { Button, Box } from '@pingux/astro';
 import Loading from './Loading';
@@ -107,7 +108,7 @@ const SelfieCapture = () => {
             const resized = resizeDetection(face);
             console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y - 200, resized?.box._width + 300, resized?.box._height + 300),
+              new faceapi.Rect(resized?.box._x, resized?.box._y - 100, resized?.box._width + 300, resized?.box._height + 300),
             ];
             const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
             if (faceImages.length === 0) {
@@ -192,12 +193,18 @@ const SelfieCapture = () => {
         height: ${isMobile ? '60vh' : ''} !important;
         ${!isMobile ? 'object-fit: cover;' : '' }
       }
+      img.selfie-oval {
+        scale: ${isMobile ? '1.5' : '1'}
+      }
       `}
     </style>
       {loading && (
         <Loading />
       )}
-        <Box className="selfie-capture-container" onClick={ () => { setImage('test')}}>
+        <Box className="selfie-capture-container">
+        {!isMobile && !image && (
+            <CameraSelect loading={loading} isMitek />
+          )}
           {!image && <video crossOrigin="anonymous" id="selfie-video" ref={videoRef} playsInline autoPlay muted preload="metadata" /> }
           {!image && !loading && hint && <div id="hint-message" >{hint}</div> }
           {!image && (

@@ -16,7 +16,7 @@ const SelfieCapture = () => {
   const [isAboveThreshold, setIsAboveThreshold] = useState(false);
   const [loading, setLoading] = useState(true);
   const [image, setImage] = useState('');
-  const [hint, setHint] = useState('');
+  const [hint, setHint] = useState('Align face with oval');
 
   const threshold = 0.9;
   const captureFace = true; // turn off during development of the quality checks
@@ -57,6 +57,7 @@ const SelfieCapture = () => {
 
   const detectFaces = async () => {
       if (document.getElementById('selfie-video') && !image) {
+
         // detectSingleFace(input).withFaceLandmarks().withFaceExpressions().withAgeAndGender().withFaceDescriptor()
         // TinyFaceOptions: inputSize - size at which image is processed, the smaller the faster but less precise in detecting smaller faces, for face tracking via webcam I would recommend using smaller sizes
         // scoreThreshold - minimum confidence threshold, default 0.5
@@ -67,7 +68,6 @@ const SelfieCapture = () => {
           setHint(error.replaceAll('_', ' '));
         };
 
-        setHint('Hold Still'); // clear message from previous attempt
         
         const vw = document.getElementById('selfie-video').offsetWidth;
         const vh = document.getElementById('selfie-video').offsetHeight;
@@ -97,11 +97,13 @@ const SelfieCapture = () => {
         const face = detectionWithLandmark?.detection;
 
         if (face) {
-          setIsAboveThreshold(face?._score > threshold);
           
           const qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
 
           if (captureFace && face?._score > threshold && qualityGood) {
+            setHint('Hold still');
+            setIsAboveThreshold(face?._score > threshold);
+
             // const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
             // canvas.width = window.innerWidth;
             // canvas.height = window.innerHeight;

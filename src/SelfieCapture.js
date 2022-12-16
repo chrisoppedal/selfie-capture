@@ -111,7 +111,7 @@ const SelfieCapture = () => {
             // faceImage.src = canvas.toDataURL();
 
             // const resized = resizeDetection(face);
-            const resized =  detectionWithLandmark.detection;
+            // const resized =  detectionWithLandmark.detection;
             var extractX = 0;
             var extractY = 0;
             var extractWidth = face.imageWidth;

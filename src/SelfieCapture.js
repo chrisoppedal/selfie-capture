@@ -107,7 +107,7 @@ const SelfieCapture = () => {
             const resized = resizeDetection(face);
             console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width + 150, resized?.box._height + 150),
+              new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width + 250, resized?.box._height + 250),
             ];
             const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
             if (faceImages.length === 0) {

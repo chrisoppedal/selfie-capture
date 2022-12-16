@@ -1,0 +1,23 @@
+/** camera select styles **/
+select {
+    width: 150px;
+  }
+  
+  svg {
+    height: inherit !important;
+    margin-right: 20px;
+  }
+  
+  .camera-select-container {
+    background-color: rgba(107, 114, 128, 0.9);
+    width: 200%;
+    margin-left: -50% !important;
+  }
+  
+  select {
+    color: white;
+    background-color: transparent;
+    border: transparent;
+    width: 260px;
+    outline: none;
+  }

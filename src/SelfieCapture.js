@@ -2,6 +2,7 @@ import './SelfieCapture.css';
 import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { isMobile } from 'react-device-detect';
+import CameraSelect from './CameraSelect';
 import useInterval from './useInterval';
 import { Button, Box } from '@pingux/astro';
 import Loading from './Loading';
@@ -228,23 +229,33 @@ const SelfieCapture = () => {
     <style>
       {`
       #selfie-video, .selfie-oval {
-        min-height: ${isMobile ? 'calc(100vh - 56px)' : '100vh'};
-        width: ${isMobile ? '100%' : '100vw'};
+        min-height: ${isMobile ? 'calc(100vh - 56px);' : '100vh;'};
+        width: ${isMobile ? '100%;' : '100vw;'};
+      }
+      #selfie-video {
+        ${!isMobile ? 'height: 100vh;' : ';' }
       }
       .img-container {
         margin: 10% auto 10% auto;
-        height: ${isMobile ? '90px' : '140px'}
+        height: ${isMobile ? '90px;' : '140px;'}
       }
       img.selfie-oval {
         height: ${isMobile ? '60vh' : ''} !important;
         ${!isMobile ? 'object-fit: cover;' : '' }
+      }
+      img.selfie-oval {
+        scale: ${isMobile ? '1.5;' : '1;'}
+        ${!isMobile ? 'height: 100vh; top: 0; bottom: 0;' : '' }
       }
       `}
     </style>
       {loading && (
         <Loading />
       )}
-        <Box className="selfie-capture-container" onClick={ () => { setImage('test')}}>
+        <Box className="selfie-capture-container">
+        {!isMobile && !image && (
+            <CameraSelect loading={loading} />
+          )}
           {!image && <video crossOrigin="anonymous" id="selfie-video" ref={videoRef} playsInline autoPlay muted preload="metadata" /> }
           {!image && !loading && hint && <div id="hint-message" >{hint}</div> }
           {!image && (

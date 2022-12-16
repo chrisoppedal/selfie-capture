@@ -66,6 +66,8 @@ const SelfieCapture = () => {
           console.log('error: ' + error);
           setHint(error.replaceAll('_', ' '));
         };
+
+        setHint('Hold Still'); // clear message from previous attempt
         
         const vw = document.getElementById('selfie-video').offsetWidth;
         const vh = document.getElementById('selfie-video').offsetHeight;
@@ -75,10 +77,13 @@ const SelfieCapture = () => {
           height: vh,
         });
 
-        allFacesWithlandmark.forEach(face => drawFaceWithLandmark(face));
+        const params = new URLSearchParams(window.location.search);
+        if(params.get("drawFace")) {
+          allFacesWithlandmark.forEach(face => drawFaceWithLandmark(face));
+        }
         
         if(allFacesWithlandmark.length === 0) {
-          errorCodeConsumer('FACE_NOT_FOUND');
+          // errorCodeConsumer('FACE_NOT_FOUND');
           return;
         }
         if(allFacesWithlandmark.length > 1) {
@@ -105,12 +110,22 @@ const SelfieCapture = () => {
             // const faceImage = document.createElement('img');
             // faceImage.src = canvas.toDataURL();
 
-            const resized = resizeDetection(face);
+            // const resized = resizeDetection(face);
+            const resized =  detectionWithLandmark.detection;
+            var extractX = 0;
+            var extractY = 0;
+            var extractWidth = face.imageWidth;
+            var extractHeight = face.imageHeight;
+            if(!isMobile) {
+              extractX = face.box.x / 2;
+              extractWidth = face.box.width + face.box.x;
+            }
+            const regionToExtract = new faceapi.Rect(extractX, extractY, extractWidth, extractHeight);
+            // const regionToExtract = new faceapi.Rect(0, 0, resized?.box._width + resized?.box.x, resized?.box._height + (1.5 * resized?.box.y));
+            
+            
             // console.log('resized', resized);
-            const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x - 150, resized?.box._y - 150, resized?.box._width + 300, resized?.box._height + 300),
-            ];
-            const faceImages = await faceapi.extractFaces(videoRef.current, regionsToExtract);
+            const faceImages = await faceapi.extractFaces(videoRef.current, [regionToExtract]);
             if (faceImages.length === 0) {
               console.log('No face found');
             } else if (faceImages.length > 1) {
@@ -118,20 +133,33 @@ const SelfieCapture = () => {
             } else {
               const faceImageCanvas = faceImages[0];
               const imageDataUrl = faceImageCanvas.toDataURL();
-              // console.log("imageDataUrl", imageDataUrl);
 
               const detectionWithLandmark = await faceapi.detectSingleFace(faceImageCanvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-              const postProcessingScore = detectionWithLandmark.detection.score;
-              console.log("post-processing score: ", postProcessingScore);
 
-              // const qualityStillGood = checkDetectionQuality(detectionWithLandmark, (errorCode) => console.error("Post processing error", errorCode));
-              const qualityStillGood = postProcessingScore > threshold;
-              console.log('quality still good:', qualityStillGood)
-              if(qualityStillGood) {
-                setImage(imageDataUrl);
-              } else {
-                // don't set image so that it re-captures the face
-                console.log("Image quality changed. score: ", postProcessingScore);
+              if(detectionWithLandmark && detectionWithLandmark.detection) {
+                const postProcessingScore = detectionWithLandmark.detection.score;
+                console.log("post-processing score: ", postProcessingScore);
+
+                // const qualityStillGood = checkDetectionQuality(detectionWithLandmark, (errorCode) => console.error("Post processing error", errorCode));
+                const qualityStillGood = postProcessingScore > threshold;
+                console.log('quality still good:', qualityStillGood)
+                if(qualityStillGood) {
+                  
+                  if(!isMobile) { // download the image on desktop so that I can see it
+                    var a = document.createElement('a');
+                    a.href = imageDataUrl;
+                    a.download = "output.png";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }
+                  // console.log("imageDataUrl", imageDataUrl);
+                  
+                  setImage(imageDataUrl);
+                } else {
+                  // don't set image so that it re-captures the face
+                  console.log("Image quality changed. score: ", postProcessingScore);
+                }
               }
             }
           }

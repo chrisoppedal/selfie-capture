@@ -60,15 +60,12 @@ const SelfieCapture = () => {
         // TinyFaceOptions: inputSize - size at which image is processed, the smaller the faster but less precise in detecting smaller faces, for face tracking via webcam I would recommend using smaller sizes
         // scoreThreshold - minimum confidence threshold, default 0.5
         const allFacesWithlandmark = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-        // console.log('allFacesWithlandmark', allFacesWithlandmark);
-        // console.log('Number of faces', allFacesWithlandmark.length);
 
         const errorConsumer = (error) => {
           console.log('error: ' + error);
           setHint(error.replaceAll('_', ' '));
         };
         
-        // canvasRef.current.innerHtml = faceapi.createCanvasFromMedia(videoRef.current);
         const vw = document.getElementById('selfie-video').offsetWidth;
         const vh = document.getElementById('selfie-video').offsetHeight;
 
@@ -108,8 +105,9 @@ const SelfieCapture = () => {
             faceImage.src = canvas.toDataURL();
 
             const resized = resizeDetection(face);
+            console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width, resized?.box._height),
+              new faceapi.Rect(resized?.box._x - 50, resized?.box._y - 50, resized?.box._width + 100, resized?.box._height + 100),
             ];
             const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
             if (faceImages.length === 0) {
@@ -128,13 +126,11 @@ const SelfieCapture = () => {
   };
   const loadModels = () => {
     Promise.all([
-      // faceapi.nets.ssdMobilenetv1.loadFromUri('./models'),
+      // faceapi.nets.ssdMobilenetv1.loadFromUri('./models'), // heavy but more accurate - use on desktops?
       faceapi.nets.tinyFaceDetector.loadFromUri('./models'), // good for mobile devices
       faceapi.nets.faceLandmark68Net.loadFromUri('./models'), // detect eye/nose/etc
       faceapi.nets.faceLandmark68TinyNet.loadFromUri('./models'),
-      // faceapi.nets.faceRecognitionNet.loadFromUri('./models'), // get recognition score
       // faceapi.nets.faceExpressionNet.loadFromUri('./models'), // detect facial expressions
-      // faceapi.nets.ageGenderNet.loadFromUri('./models')
     ]).then((promise) => {
       console.log('Models loaded!');
     });
@@ -184,16 +180,16 @@ const SelfieCapture = () => {
     <>
     <style>
       {`
-      #selfie-video {
+      #selfie-video, .selfie-oval {
         min-height: ${isMobile ? 'calc(100vh - 56px)' : '100vh'};
         width: ${isMobile ? '100%' : ''};
       }
       .img-container {
         margin: 10% auto 10% auto;
-        height: ${isMobile ? '120px' : '140px'}
+        height: ${isMobile ? '90px' : '140px'}
       }
       img.selfie-oval {
-        height: ${isMobile ? '60vh' : '80vh'} !important;
+        height: ${isMobile ? '60vh' : ''} !important;
       }
       `}
     </style>
@@ -209,10 +205,10 @@ const SelfieCapture = () => {
             className="selfie_canvas"
           />
           )}
-          {!image && !loading && isAboveThreshold && <img src="images/ghost_selfie_portrait_green.gif" alt="green-oval" className="selfie-oval" />}
-          {!image && !loading && !isAboveThreshold && <img src="images/ghost_selfie_portrait.gif" alt="capture-oval" className="selfie-oval" /> }
+          {!image && !loading && !isAboveThreshold && <img src="images/mask.gif" alt="capture-oval" className="selfie-oval" />}
+          {!image && !loading && isAboveThreshold && <img src="images/green-mask.gif" alt="green-oval" className="selfie-oval" /> }
           {image && 
-          <Box height="100vh">
+          <Box height="100vh" width="80vw">
             <Box mx="auto" mt="md" className="img-container">
               <svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M133.333 133.333H16.6667V16.6667H133.333V133.333ZM133.333 0H16.6667C12.2464 0 8.00716 1.75595 4.88155 4.88155C1.75595 8.00716 0 12.2464 0 16.6667V133.333C0 137.754 1.75595 141.993 4.88155 145.118C8.00716 148.244 12.2464 150 16.6667 150H133.333C137.754 150 141.993 148.244 145.118 145.118C148.244 141.993 150 137.754 150 133.333V16.6667C150 7.41667 142.5 0 133.333 0ZM112.5 110.417C112.5 97.9167 87.5 91.6667 75 91.6667C62.5 91.6667 37.5 97.9167 37.5 110.417V116.667H112.5V110.417ZM75 77.0833C79.9728 77.0833 84.7419 75.1079 88.2582 71.5916C91.7746 68.0753 93.75 63.3061 93.75 58.3333C93.75 53.3605 91.7746 48.5914 88.2582 45.0751C84.7419 41.5588 79.9728 39.5833 75 39.5833C70.0272 39.5833 65.2581 41.5588 61.7417 45.0751C58.2254 48.5914 56.25 53.3605 56.25 58.3333C56.25 63.3061 58.2254 68.0753 61.7417 71.5916C65.2581 75.1079 70.0272 77.0833 75 77.0833Z" fill="url(#paint0_linear_203_85)" />
@@ -224,7 +220,6 @@ const SelfieCapture = () => {
                 </defs>
               </svg>
             </Box>
-            <Text variant="sectionTitle" mb="lg" mx="auto">Review</Text>
             <img src={image} alt="face" crossOrigin="anonymous" className="selfie-img" />
             <Box mx="auto" sx={{ width: '80%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>

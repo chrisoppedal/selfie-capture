@@ -53,8 +53,7 @@ const CameraSelect = (props) => {
       };
       startSelectedStream()?.then(() => navigator.mediaDevices.enumerateDevices()).then(repopulateDropdown);
     }
-    // eslint-disable-next-line
-ear  }, [loading]);
+  }, [loading]);
 
   return (
     <Box

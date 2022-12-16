@@ -105,16 +105,6 @@ const SelfieCapture = () => {
             setHint('Hold still');
             setIsAboveThreshold(face?._score > threshold);
 
-            // const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
-            // canvas.width = window.innerWidth;
-            // canvas.height = window.innerHeight;
-            // const ctx = canvas.getContext('2d');
-            // ctx.drawImage(document.getElementById('selfie-video'), 0, 0, canvas.width, canvas.height);
-            // const faceImage = document.createElement('img');
-            // faceImage.src = canvas.toDataURL();
-
-            // const resized = resizeDetection(face);
-            // const resized =  detectionWithLandmark.detection;
             var extractX = 0;
             var extractY = 0;
             var extractWidth = face.imageWidth;
@@ -147,15 +137,6 @@ const SelfieCapture = () => {
                 const qualityStillGood = postProcessingScore > threshold;
                 console.log('quality still good:', qualityStillGood)
                 if(qualityStillGood) {
-                  
-                  if(!isMobile) { // download the image on desktop so that I can see it
-                    var a = document.createElement('a');
-                    a.href = imageDataUrl;
-                    a.download = "output.png";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                  }
                   // console.log("imageDataUrl", imageDataUrl);
                   
                   setImage(imageDataUrl);

@@ -182,7 +182,7 @@ const SelfieCapture = () => {
       {`
       #selfie-video, .selfie-oval {
         min-height: ${isMobile ? 'calc(100vh - 56px)' : '100vh'};
-        width: ${isMobile ? '100%' : ''};
+        width: ${isMobile ? '100%' : '100vw'};
       }
       .img-container {
         margin: 10% auto 10% auto;
@@ -190,6 +190,7 @@ const SelfieCapture = () => {
       }
       img.selfie-oval {
         height: ${isMobile ? '60vh' : ''} !important;
+        ${!isMobile ? 'object-fit: cover;' : '' }
       }
       `}
     </style>

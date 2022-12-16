@@ -209,9 +209,9 @@ const SelfieCapture = () => {
     startVideo();
     setHint('');
   };
-  const loadImage = () => {
-    document.getElementById('file-input').click();
-  };
+  // const loadImage = () => {
+  //   document.getElementById('file-input').click();
+  // };
   const getGradient = (buttonColor, luminosity) => {
     let hex = String(buttonColor).replace(/[^0-9a-f]/gi, '');
     if (hex.length < 6) {

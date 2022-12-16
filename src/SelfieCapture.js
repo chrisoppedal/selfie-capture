@@ -34,7 +34,7 @@ const SelfieCapture = () => {
   };
 
   useInterval(() => {
-    detectFaces();
+        detectFaces();
   }, 500);
 
   function drawFaceWithLandmark(detectionWithLandmark) {
@@ -97,26 +97,42 @@ const SelfieCapture = () => {
           const qualityGood = checkDetectionQuality(detectionWithLandmark, errorCodeConsumer);
 
           if (captureFace && face?._score > threshold && qualityGood) {
-            const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(document.getElementById('selfie-video'), 0, 0, canvas.width, canvas.height);
-            const faceImage = document.createElement('img');
-            faceImage.src = canvas.toDataURL();
+            // const canvas = faceapi.createCanvasFromMedia(videoRef.current); // size of image to show
+            // canvas.width = window.innerWidth;
+            // canvas.height = window.innerHeight;
+            // const ctx = canvas.getContext('2d');
+            // ctx.drawImage(document.getElementById('selfie-video'), 0, 0, canvas.width, canvas.height);
+            // const faceImage = document.createElement('img');
+            // faceImage.src = canvas.toDataURL();
 
             const resized = resizeDetection(face);
-            console.log('resized', resized);
+            // console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y - 0, resized?.box._width + 300, resized?.box._height + 300),
+              new faceapi.Rect(resized?.box._x - 150, resized?.box._y - 150, resized?.box._width + 300, resized?.box._height + 300),
             ];
-            const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
+            const faceImages = await faceapi.extractFaces(videoRef.current, regionsToExtract);
             if (faceImages.length === 0) {
               console.log('No face found');
+            } else if (faceImages.length > 1) {
+              console.log('Multiple faces found?');
             } else {
-              faceImages.forEach((cnv) => {
-                setImage(cnv.toDataURL());
-              });
+              const faceImageCanvas = faceImages[0];
+              const imageDataUrl = faceImageCanvas.toDataURL();
+              // console.log("imageDataUrl", imageDataUrl);
+
+              const detectionWithLandmark = await faceapi.detectSingleFace(faceImageCanvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+              const postProcessingScore = detectionWithLandmark.detection.score;
+              console.log("post-processing score: ", postProcessingScore);
+
+              // const qualityStillGood = checkDetectionQuality(detectionWithLandmark, (errorCode) => console.error("Post processing error", errorCode));
+              const qualityStillGood = postProcessingScore > threshold;
+              console.log('quality still good:', qualityStillGood)
+              if(qualityStillGood) {
+                setImage(imageDataUrl);
+              } else {
+                // don't set image so that it re-captures the face
+                console.log("Image quality changed. score: ", postProcessingScore);
+              }
             }
           }
         } else {

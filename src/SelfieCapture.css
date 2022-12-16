@@ -25,8 +25,8 @@
     }
     img.selfie-oval {
       position: absolute;
-      object-fit: contain;
-      opacity: 0.5;
+      scale: 1.5;
+      opacity: 0.7;
     }
     div#hint-message {
       position:absolute;

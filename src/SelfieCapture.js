@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { isMobile } from 'react-device-detect';
 import useInterval from './useInterval';
-import { Button, Box, Text } from '@pingux/astro';
+import { Button, Box } from '@pingux/astro';
 import Loading from './Loading';
 import { Point } from 'face-api.js';
 

@@ -1,4 +1,4 @@
-l/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-restricted-syntax */
 import React, { useEffect } from 'react';
 import { Box } from '@pingux/astro';
 import PropTypes from 'prop-types';

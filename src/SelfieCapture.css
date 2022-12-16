@@ -9,9 +9,13 @@
       overflow: auto;
     }
     .selfie-img {
-      width: 60%;
       margin-left: auto;
       margin-right: auto;
+      width: auto;
+      max-width: 60%;
+      height: auto;
+      border: solid 1px gray;
+      border-radius: 3%;
     }
     .selfie_canvas {
       position: absolute;
@@ -39,6 +43,7 @@
       padding: 15px;
       opacity: 0.8;
       text-align: center;
+      z-index: 1;
   }
 
   .themed-button {

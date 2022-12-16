@@ -107,7 +107,7 @@ const SelfieCapture = () => {
             const resized = resizeDetection(face);
             console.log('resized', resized);
             const regionsToExtract = [
-              new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width + 250, resized?.box._height + 250),
+              new faceapi.Rect(resized?.box._x, resized?.box._y, resized?.box._width + 350, resized?.box._height + 350),
             ];
             const faceImages = await faceapi.extractFaces(faceImage, regionsToExtract);
             if (faceImages.length === 0) {
@@ -221,7 +221,7 @@ const SelfieCapture = () => {
               </svg>
             </Box>
             <img src={image} alt="face" crossOrigin="anonymous" className="selfie-img" />
-            <Box mx="auto" sx={{ width: '80%' }}>
+            <Box mx="auto" mt="sm" sx={{ width: '80%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>
               <Button mt="md" className="themed-button" variant="primary">Continue</Button>
               <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button>

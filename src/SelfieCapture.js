@@ -182,19 +182,23 @@ const SelfieCapture = () => {
     <style>
       {`
       #selfie-video, .selfie-oval {
-        min-height: ${isMobile ? 'calc(100vh - 56px)' : '100vh'};
-        width: ${isMobile ? '100%' : '100vw'};
+        min-height: ${isMobile ? 'calc(100vh - 56px);' : '100vh;'};
+        width: ${isMobile ? '100%;' : '100vw;'};
+      }
+      #selfie-video {
+        ${!isMobile ? 'height: 100vh;' : ';' }
       }
       .img-container {
         margin: 10% auto 10% auto;
-        height: ${isMobile ? '90px' : '140px'}
+        height: ${isMobile ? '90px;' : '140px;'}
       }
       img.selfie-oval {
         height: ${isMobile ? '60vh' : ''} !important;
         ${!isMobile ? 'object-fit: cover;' : '' }
       }
       img.selfie-oval {
-        scale: ${isMobile ? '1.5' : '1'}
+        scale: ${isMobile ? '1.5;' : '1;'}
+        ${!isMobile ? 'height: 100vh; top: 0; bottom: 0;' : '' }
       }
       `}
     </style>

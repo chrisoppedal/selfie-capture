@@ -220,16 +220,19 @@ const SelfieCapture = () => {
         ${!isMobile ? 'height: 95vh;' : ';' }
       }
       .img-container {
-        margin: 10% auto 10% auto;
-        height: ${isMobile ? '90px;' : '140px;'}
+        margin: ${isMobile ? '10% auto 10% auto;' : '5% auto 5% auto;'}
+        height: ${isMobile ? '90px;' : '80px;'}
       }
       img.selfie-oval {
         height: ${isMobile ? '60vh' : ''} !important;
         ${!isMobile ? 'object-fit: cover;' : '' }
       }
       img.selfie-oval {
-        scale: ${isMobile ? '1.5;' : '1;'}
+        scale: ${isMobile ? '1.8;' : '1;'}
         ${!isMobile ? 'height: 100vh; top: 0; bottom: 0;' : '' }
+      }
+      .selfie-img {
+        max-width: ${isMobile ? '60%' : '25%'};
       }
       `}
     </style>
@@ -267,7 +270,7 @@ const SelfieCapture = () => {
             <Box mx="auto" mt="sm" mb="md" sx={{ width: '80%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>
               <Button mt="md" className="themed-button" variant="primary">Continue</Button>
-              <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button>
+              {/* <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button> */}
             </Box>
           </Box> }
         </Box>

@@ -61,6 +61,7 @@ const CameraSelect = (props) => {
       mb="auto"
       sx={{
         zIndex: '1',
+        width: '100vw'
       }}
     >
       <Box height="5vh" className="camera-select-container" px="auto">

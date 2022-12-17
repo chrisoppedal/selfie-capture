@@ -271,8 +271,10 @@ const SelfieCapture = () => {
             className="selfie_canvas"
           />
           )}
-          {!image && !loading && !isAboveThreshold && <img src="images/mask.gif" alt="capture-oval" className="selfie-oval" />}
-          {!image && !loading && isAboveThreshold && <img src="images/green-mask.gif" alt="green-oval" className="selfie-oval" /> }
+          {isMobile && !image && !loading && !isAboveThreshold && <img src="images/oval.gif" alt="capture-oval" className="selfie-oval" />}
+          {isMobile && !image && !loading && isAboveThreshold && <img src="images/green-oval.gif" alt="green-oval" className="selfie-oval" /> }
+          {!isMobile && !image && !loading && !isAboveThreshold && <img src="images/desktop-oval.gif" alt="capture-oval" className="selfie-oval" />}
+          {!isMobile && !image && !loading && isAboveThreshold && <img src="images/desktop-green-oval.gif" alt="green-oval" className="selfie-oval" /> }
           {image && 
           <Box height="100vh" width="80vw">
             <Box mx="auto" mt="md" className="img-container">
@@ -287,7 +289,7 @@ const SelfieCapture = () => {
               </svg>
             </Box>
             <img src={image} alt="face" crossOrigin="anonymous" className="selfie-img" />
-            <Box mx="auto" mt="sm" mb="md" sx={{ width: '25%' }}>
+            <Box mx="auto" mt="sm" mb="md" sx={{ width: isMobile ? '' : '25%' }}>
               <Button mt="md" className="themed-button" variant="primary" onClick={retake}>Retake</Button>
               <Button mt="md" mb="md" className="themed-button" variant="primary">Continue</Button>
               {/* <Button mt="md" className="themed-button" variant="primary" onClick={loadImage}>Load Image</Button> */}
